@@ -9,6 +9,17 @@ class EmptyValue(Term):
         return '~'
 
 
+class Variable(Term):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+    def get_approx(self):
+        return NotImplemented
+
+
 class Number(Term):
     def __init__(self, number_value):
         self.number_value = number_value

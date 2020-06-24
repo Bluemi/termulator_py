@@ -81,10 +81,24 @@ class NumberToken(Token):
         if is_number_dot(s[-1]):
             raise ValueError('It is not allowed to end a number with "{}"'.format(s[-1]))
 
+    def to_number(self):
+        s = ''.join(self.token_chars)
+        if self.got_dot:
+            return float(s)
+        else:
+            return int(s)
+
 
 class OperatorToken(Token):
     def __init__(self):
         super().__init__()
+
+    def get_operator_priority(self):
+        s = ''.join(self.token_chars)
+        if s in ('+', '-'):
+            return 1.0
+        if s in ('*', '/', '%'):
+            return 2.0
 
     def accepts_char(self, c):
         return is_operator(c) and not self.token_chars
@@ -92,6 +106,9 @@ class OperatorToken(Token):
     def check(self):
         if len(self.token_chars) != 1:
             raise ValueError('Got multiple operator signs')
+
+    def get_operator(self):
+        return ''.join(self.token_chars)
 
 
 class VariableToken(Token):
@@ -101,6 +118,9 @@ class VariableToken(Token):
     def accepts_char(self, c):
         return c in string.ascii_letters or (c in string.digits and self.token_chars)
 
+    def get_name(self):
+        return ''.join(self.token_chars)
+
 
 class BracketToken(Token):
     def __init__(self):
@@ -108,6 +128,9 @@ class BracketToken(Token):
 
     def accepts_char(self, c):
         return c in '()' and not self.token_chars
+
+    def is_left(self):
+        return ''.join(self.token_chars) == '('
 
 
 def is_number_dot(c):
