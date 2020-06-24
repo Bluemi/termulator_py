@@ -1,10 +1,14 @@
-def main():
-    root = None
+import time
+from curses import wrapper as curses_wrapper
+
+from termulator_py.term_handler import TermHandler
 
 
-def show_root(root):
-    print(root)
+def main(_curses_window):
+    term_handler = TermHandler()
+    # time.sleep(2)
 
 
 if __name__ == '__main__':
-    main()
+    # curses_wrapper(main)
+    main(None)

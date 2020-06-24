@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python3 ./src/termulator.py
+python3 ./termulator_py/termulator.py

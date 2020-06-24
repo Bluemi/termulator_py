@@ -1,0 +1,10 @@
+README.md
+setup.py
+termulator_py/termulator.py
+termulator_py.egg-info/PKG-INFO
+termulator_py.egg-info/SOURCES.txt
+termulator_py.egg-info/dependency_links.txt
+termulator_py.egg-info/top_level.txt
+termulator_py/terms/__init__.py
+termulator_py/terms/operators.py
+termulator_py/terms/values.py
