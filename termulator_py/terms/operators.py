@@ -1,4 +1,4 @@
-from termulator_py.values import EmptyValue
+from termulator_py.terms.values import EmptyValue
 
 
 class Addition:
