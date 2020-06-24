@@ -6,12 +6,12 @@ class Addition(Term):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()]*2
 
-    def get_approx(self):
+    def get_approx(self, variables):
         sum_value = 0
         for sub_term in self.sub_terms:
             if isinstance(sub_term, EmptyValue):
                 return EmptyValue()
-            sum_value += sub_term.get_approx()
+            sum_value += sub_term.get_approx(variables)
 
         return sum_value
 
@@ -23,12 +23,12 @@ class Multiplication(Term):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()] * 2
 
-    def get_approx(self):
+    def get_approx(self, variables):
         prod_value = 1
         for sub_term in self.sub_terms:
             if isinstance(sub_term, EmptyValue):
                 return EmptyValue()
-            prod_value *= sub_term.get_approx()
+            prod_value *= sub_term.get_approx(variables)
 
         return prod_value
 

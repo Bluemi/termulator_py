@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class Term(ABC):
     @abstractmethod
-    def get_approx(self):
+    def get_approx(self, variables):
         return None
 
     @abstractmethod
