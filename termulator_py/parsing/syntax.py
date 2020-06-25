@@ -26,8 +26,10 @@ def tokens_to_syntax_tree(tokens):
             operator_right
         )
 
-    if len(tokens) != 1:
-        raise ValueError('Found tokens without operator: {}'.format(tokens))
+    if len(tokens) == 0:
+        raise ValueError('Syntax Error: Missing expression for operator.')
+    elif len(tokens) > 1:
+        raise ValueError('Syntax Error: Found tokens without operator: {}'.format(tokens))
 
     token = tokens[0]
     if isinstance(token, VariableToken):
