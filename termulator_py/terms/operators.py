@@ -1,10 +1,21 @@
+from abc import abstractmethod
+
 from termulator_py.terms import Term
 from termulator_py.terms.values import EmptyValue
 
 
-class Addition(Term):
+class Operator(Term):
+    @abstractmethod
+    def get_operator_priority(self):
+        pass
+
+
+class Addition(Operator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()]*2
+
+    def get_operator_priority(self):
+        return 0
 
     def get_approx(self, variables):
         sum_value = 0
@@ -16,12 +27,15 @@ class Addition(Term):
         return sum_value
 
     def __str__(self):
-        return '{} + {}'.format(*self.sub_terms)
+        return join_with_brackets('+', self.sub_terms, self.get_operator_priority())
 
 
-class Multiplication(Term):
+class Multiplication(Operator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()] * 2
+
+    def get_operator_priority(self):
+        return 1
 
     def get_approx(self, variables):
         prod_value = 1
@@ -33,4 +47,13 @@ class Multiplication(Term):
         return prod_value
 
     def __str__(self):
-        return '{} * {}'.format(*self.sub_terms)
+        return join_with_brackets('*', self.sub_terms, self.get_operator_priority())
+
+
+def join_with_brackets(sep, terms, own_operator_priority):
+    def _bracket_if_necessary(term):
+        if isinstance(term, Operator):
+            if term.get_operator_priority() < own_operator_priority:
+                return '({})'.format(term)
+        return str(term)
+    return sep.join(map(_bracket_if_necessary, terms))

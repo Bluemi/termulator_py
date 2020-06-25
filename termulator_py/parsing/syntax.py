@@ -1,4 +1,5 @@
 from termulator_py.parsing.tokens import BracketToken, OperatorToken, VariableToken, NumberToken
+from termulator_py.terms import Term
 from termulator_py.terms.operators import Addition, Multiplication
 from termulator_py.terms.values import Number, Variable
 
@@ -11,7 +12,7 @@ def tokens_to_syntax_tree(tokens):
         else:
             tokens_before_left = tokens[:left]
             tokens_between = tokens[left+1: right]
-            tokens_after_right = tokens[right+1]
+            tokens_after_right = tokens[right+1:]
             expression = tokens_to_syntax_tree(tokens_between)
             tokens = [*tokens_before_left, expression, *tokens_after_right]
 
@@ -33,6 +34,8 @@ def tokens_to_syntax_tree(tokens):
         return Variable(token.get_name())
     elif isinstance(token, NumberToken):
         return Number(token.to_number())
+    elif isinstance(token, Term):
+        return token
     else:
         raise TypeError('Unexpected token {}'.format(token))
 
