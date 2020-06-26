@@ -38,10 +38,11 @@ class TermHandle:
             indices = self.indices
         else:
             indices = self.indices[:-cutoff]
+
         for i in indices:
             if isinstance(term, Operator):
                 sub_terms = term.get_sub_terms()
-                if len(sub_terms) < i:
+                if i < len(sub_terms):
                     term = sub_terms[i]
         return term
 
@@ -51,21 +52,24 @@ class TermHandle:
     def get_cursor_iterator(self):
         contains = False
         for cursor, term in term_cursor_iterator(self.term):
-            if contains:
-                if not self.contains_cursor(cursor):
-                    contains = False
-                    yield CursorPosition.ChildEnd
+            if cursor is None:
+                yield term
             else:
-                if self.contains_cursor(cursor):
-                    contains = True
-                    yield CursorPosition.ChildStart
+                if contains:
+                    if not self.contains_cursor(cursor):
+                        contains = False
+                        yield CursorPosition.ChildEnd
+                else:
+                    if self.contains_cursor(cursor):
+                        contains = True
+                        yield CursorPosition.ChildStart
 
-            if cursor_equals(self.indices, cursor):
-                yield CursorPosition.CursorStart
-                yield term
-                yield CursorPosition.CursorEnd
-            else:
-                yield term
+                if cursor_equals(self.indices, cursor):
+                    yield CursorPosition.CursorStart
+                    yield term
+                    yield CursorPosition.CursorEnd
+                else:
+                    yield term
         if contains:
             yield CursorPosition.ChildEnd
 
