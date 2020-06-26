@@ -1,2 +1,2 @@
 # termulator_py
-Termulator Project in Python. Simple program to solve mathematic problems
+Termulator Project in Python. Simple program to solve mathematical problems

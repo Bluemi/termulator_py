@@ -104,8 +104,8 @@ def start_app(window: curses.window, messages):
     curses.init_pair(1, curses.COLOR_WHITE, 24)
     curses.init_pair(2, curses.COLOR_WHITE, 19)
 
-    main_manager = Termulator(window, messages)
-    main_manager.run()
+    termulator = Termulator(window, messages)
+    termulator.run()
 
 
 def main():
