@@ -22,19 +22,13 @@ def term_cursor_iterator(term):
 
 def _term_cursor_iterator_impl(term, cursor):
     if isinstance(term, Operator):
-        # iterate over all sub terms except the last
-        for index, sub_term in enumerate(term.get_sub_terms()[:-1]):
+        last_index = len(term.get_sub_terms()) - 1
+        for index, sub_term in enumerate(term.get_sub_terms()):
             sub_cursor = [*cursor, index]
             for sub_sub_term, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, sub_cursor):
                 yield sub_sub_term, sub_sub_cursor
-            yield term, cursor
-        # handle last term
-        if term.get_sub_terms():
-            last_index = len(term.get_sub_terms()) - 1
-            sub_cursor = [*cursor, last_index]
-            sub_term = term.get_sub_terms()[-1]
-            for sub_sub_term, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, sub_cursor):
-                yield sub_sub_term, sub_sub_cursor
+            if index != last_index:
+                yield term, cursor
     else:
         yield term, cursor
 
