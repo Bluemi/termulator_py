@@ -17,26 +17,26 @@ def term_iterator(term):
 
 
 def term_cursor_iterator(term):
-    return _term_cursor_iterator_impl(term, None, [])
+    return _term_cursor_iterator_impl(term, [])
 
 
-def _term_cursor_iterator_impl(term, parent, cursor):
+def _term_cursor_iterator_impl(term, cursor):
     if isinstance(term, Operator):
         # iterate over all sub terms except the last
         for index, sub_term in enumerate(term.get_sub_terms()[:-1]):
             sub_cursor = [*cursor, index]
-            for sub_sub_term, sub_sub_parent, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, term, sub_cursor):
-                yield sub_sub_term, sub_sub_parent, sub_sub_cursor
-            yield term, parent, cursor
+            for sub_sub_term, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, sub_cursor):
+                yield sub_sub_term, sub_sub_cursor
+            yield term, cursor
         # handle last term
         if term.get_sub_terms():
             last_index = len(term.get_sub_terms()) - 1
             sub_cursor = [*cursor, last_index]
             sub_term = term.get_sub_terms()[-1]
-            for sub_sub_term, sub_sub_parent, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, term, sub_cursor):
-                yield sub_sub_term, sub_sub_parent, sub_sub_cursor
+            for sub_sub_term, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, sub_cursor):
+                yield sub_sub_term, sub_sub_cursor
     else:
-        yield term, parent, cursor
+        yield term, cursor
 
 
 def cursor_contains_cursor(base, cursor):

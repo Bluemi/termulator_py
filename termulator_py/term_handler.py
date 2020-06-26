@@ -47,7 +47,7 @@ class TermHandle:
 
     def get_print_iterator(self):
         contains = False
-        for term, parent, cursor in term_cursor_iterator(self.term):
+        for term, cursor in term_cursor_iterator(self.term):
             if contains:
                 if not cursor_contains_cursor(self.cursor, cursor):
                     contains = False
