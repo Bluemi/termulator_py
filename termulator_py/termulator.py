@@ -101,8 +101,8 @@ class Termulator:
 
 def start_app(window: curses.window, messages):
     window.keypad(False)
-    curses.init_pair(1, curses.COLOR_WHITE, 24)
-    curses.init_pair(2, curses.COLOR_WHITE, 19)
+    curses.init_pair(1, curses.COLOR_WHITE, 18)
+    curses.init_pair(2, curses.COLOR_WHITE, 21)
 
     termulator = Termulator(window, messages)
     termulator.run()
