@@ -1,7 +1,8 @@
 from enum import Enum
 
 from termulator_py.terms.operators import Operator
-from termulator_py.util import term_iterator, term_cursor_iterator, cursor_contains_cursor, cursor_equals
+from termulator_py.util import term_iterator, term_cursor_iterator, cursor_contains_cursor, cursor_equals, \
+    get_term_by_cursor
 
 
 class CursorPosition(Enum):
@@ -31,75 +32,64 @@ class TermHandler:
 class TermHandle:
     def __init__(self, term):
         self.term = term
-        self.indices = []
+        self.cursor = []
 
-    def get_top(self, term, cutoff=0):
+    def get_top(self, cutoff=0):
         if cutoff == 0:
-            indices = self.indices
+            indices = self.cursor
         else:
-            indices = self.indices[:-cutoff]
+            indices = self.cursor[:-cutoff]
 
-        for i in indices:
-            if isinstance(term, Operator):
-                sub_terms = term.get_sub_terms()
-                if i < len(sub_terms):
-                    term = sub_terms[i]
-        return term
+        return get_term_by_cursor(self.term, indices)
 
     def get_term_iterator(self):
         return term_iterator(self.term)
 
-    def get_cursor_iterator(self):
+    def get_print_iterator(self):
         contains = False
-        for cursor, term in term_cursor_iterator(self.term):
-            if cursor is None:
-                yield term
+        for term, parent, cursor in term_cursor_iterator(self.term):
+            if contains:
+                if not cursor_contains_cursor(self.cursor, cursor):
+                    contains = False
+                    yield CursorPosition.ChildEnd
             else:
-                if contains:
-                    if not self.contains_cursor(cursor):
-                        contains = False
-                        yield CursorPosition.ChildEnd
-                else:
-                    if self.contains_cursor(cursor):
-                        contains = True
-                        yield CursorPosition.ChildStart
+                if cursor_contains_cursor(self.cursor, cursor):
+                    contains = True
+                    yield CursorPosition.ChildStart
 
-                if cursor_equals(self.indices, cursor):
-                    yield CursorPosition.CursorStart
-                    yield term
-                    yield CursorPosition.CursorEnd
-                else:
-                    yield term
+            cursor_equal = cursor_equals(self.cursor, cursor)
+            if cursor_equal:
+                yield CursorPosition.CursorStart
+            yield term
+            if cursor_equal:
+                yield CursorPosition.CursorEnd
         if contains:
             yield CursorPosition.ChildEnd
 
-    def contains_cursor(self, cursor):
-        return cursor_contains_cursor(self.indices, cursor)
-
     def go_down(self):
-        top = self.get_top(self.term)
+        top = self.get_top()
         if isinstance(top, Operator):
-            self.indices.append(0)
+            self.cursor.append(0)
             return True
         return False
 
     def go_up(self):
-        if self.indices:
-            self.indices.pop()
+        if self.cursor:
+            self.cursor.pop()
             return True
         return False
 
     def go_right(self):
-        if self.indices:
-            parent = self.get_top(self.term, cutoff=1)
-            if self.indices[-1] + 1 < len(parent.get_sub_terms()):
-                self.indices[-1] += 1
+        if self.cursor:
+            parent = self.get_top(cutoff=1)
+            if self.cursor[-1] + 1 < len(parent.get_sub_terms()):
+                self.cursor[-1] += 1
                 return True
         return False
 
     def go_left(self):
-        if self.indices:
-            if self.indices[-1] > 0:
-                self.indices[-1] -= 1
+        if self.cursor:
+            if self.cursor[-1] > 0:
+                self.cursor[-1] -= 1
                 return True
         return False

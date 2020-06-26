@@ -17,38 +17,26 @@ def term_iterator(term):
 
 
 def term_cursor_iterator(term):
-    return _term_cursor_iterator_impl(term, [])
+    return _term_cursor_iterator_impl(term, None, [])
 
 
-def _term_cursor_iterator_impl(term, cursor):
+def _term_cursor_iterator_impl(term, parent, cursor):
     if isinstance(term, Operator):
         # iterate over all sub terms except the last
         for index, sub_term in enumerate(term.get_sub_terms()[:-1]):
-            if isinstance(sub_term, Operator):
-                if sub_term.get_operator_priority() < term.get_operator_priority():
-                    yield None, '('
             sub_cursor = [*cursor, index]
-            for sub_sub_cursor, sub_sub_term in _term_cursor_iterator_impl(sub_term, sub_cursor):
-                yield sub_sub_cursor, sub_sub_term
-            yield cursor, term
-            if isinstance(sub_term, Operator):
-                if sub_term.get_operator_priority() < term.get_operator_priority():
-                    yield None, ')'
+            for sub_sub_term, sub_sub_parent, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, term, sub_cursor):
+                yield sub_sub_term, sub_sub_parent, sub_sub_cursor
+            yield term, parent, cursor
         # handle last term
         if term.get_sub_terms():
             last_index = len(term.get_sub_terms()) - 1
             sub_cursor = [*cursor, last_index]
             sub_term = term.get_sub_terms()[-1]
-            if isinstance(sub_term, Operator):
-                if sub_term.get_operator_priority() < term.get_operator_priority():
-                    yield None, '('
-            for sub_sub_cursor, sub_sub_term in _term_cursor_iterator_impl(sub_term, sub_cursor):
-                yield sub_sub_cursor, sub_sub_term
-            if isinstance(sub_term, Operator):
-                if sub_term.get_operator_priority() < term.get_operator_priority():
-                    yield None, ')'
+            for sub_sub_term, sub_sub_parent, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, term, sub_cursor):
+                yield sub_sub_term, sub_sub_parent, sub_sub_cursor
     else:
-        yield cursor, term
+        yield term, parent, cursor
 
 
 def cursor_contains_cursor(base, cursor):
@@ -67,3 +55,14 @@ def cursor_equals(cursor0, cursor1):
         if index0 != index1:
             return False
     return True
+
+
+def get_term_by_cursor(term, cursor):
+    for i in cursor:
+        if isinstance(term, Operator):
+            sub_terms = term.get_sub_terms()
+            if i < len(sub_terms):
+                term = sub_terms[i]
+            else:
+                raise ValueError('Cannot get {}. sub term of {}'.format(i, term))
+    return term

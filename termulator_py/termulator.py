@@ -57,7 +57,7 @@ class Termulator:
         for y, term_handle in enumerate(self.term_handler.term_handles):
             self.window.move(y, 0)
             color = 0
-            for elem in term_handle.get_cursor_iterator():
+            for elem in term_handle.get_print_iterator():
                 if elem == CursorPosition.ChildStart:
                     color = curses.color_pair(1)
                 elif elem == CursorPosition.ChildEnd:
