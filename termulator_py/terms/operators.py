@@ -9,10 +9,17 @@ class Operator(Term):
     def get_operator_priority(self):
         pass
 
+    @abstractmethod
+    def get_sub_terms(self):
+        pass
+
 
 class Addition(Operator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()]*2
+
+    def get_sub_terms(self):
+        return self.sub_terms
 
     def get_operator_priority(self):
         return 0
@@ -27,12 +34,16 @@ class Addition(Operator):
         return sum_value
 
     def __str__(self):
-        return join_with_brackets('+', self.sub_terms, self.get_operator_priority())
+        return '+'
+        # return join_with_brackets('+', self.sub_terms, self.get_operator_priority())
 
 
 class Multiplication(Operator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()] * 2
+
+    def get_sub_terms(self):
+        return self.sub_terms
 
     def get_operator_priority(self):
         return 1
@@ -47,7 +58,8 @@ class Multiplication(Operator):
         return prod_value
 
     def __str__(self):
-        return join_with_brackets('*', self.sub_terms, self.get_operator_priority())
+        return '*'
+        # return join_with_brackets('*', self.sub_terms, self.get_operator_priority())
 
 
 def join_with_brackets(sep, terms, own_operator_priority):

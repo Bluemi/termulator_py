@@ -3,8 +3,7 @@ import string
 from enum import Enum
 
 from termulator_py.parsing import parse_string
-from termulator_py.term_handler import TermHandler
-
+from termulator_py.term_handler import TermHandler, CursorPosition
 
 PRINTABLE_CH = [ord(key) for key in string.printable]
 
@@ -29,12 +28,12 @@ class Console:
         self.command = []
 
 
-class MainManager:
-    def __init__(self, window, messages):
+class Termulator:
+    def __init__(self, window: curses.window, messages):
         self.window = window
         self.term_handler = TermHandler()
         self.display_mode = DisplayMode.TERMS
-        self.term_handler.add_term(parse_string('1 + 2 * 3'))
+        self.term_handler.add_term(parse_string('1 + 2 * (3 + 2)'))
         self.console = Console()
         self.running = True
         self.messages = messages
@@ -55,8 +54,20 @@ class MainManager:
             self.window.addstr(curses.LINES-1, 0, ':{}'.format(self.console.get_command()))
 
     def update_terms(self):
-        for y, term_string in enumerate(self.term_handler.get_string_representations()):
-            self.window.addstr(y, 0, term_string)
+        for y, term_handle in enumerate(self.term_handler.term_handles):
+            self.window.move(y, 0)
+            color = 0
+            for elem in term_handle.get_cursor_iterator():
+                if elem == CursorPosition.ChildStart:
+                    color = curses.color_pair(1)
+                elif elem == CursorPosition.ChildEnd:
+                    color = curses.color_pair(0)
+                elif elem == CursorPosition.CursorStart:
+                    color = curses.color_pair(2)
+                elif elem == CursorPosition.CursorEnd:
+                    color = curses.color_pair(1)
+                else:
+                    self.window.addstr(str(elem), color)
 
     def handle_ch(self, ch):
         if self.display_mode == DisplayMode.CONSOLE:
@@ -69,10 +80,16 @@ class MainManager:
             else:
                 self.console.handle_ch(ch)
         elif self.display_mode == DisplayMode.TERMS:
-            if ch == ord('q'):
-                self.running = False
-            elif ch == ord(':'):
+            if ch == ord(':'):
                 self.display_mode = DisplayMode.CONSOLE
+            elif ch == ord('h'):
+                self.term_handler.term_handles[0].go_left()
+            elif ch == ord('j'):
+                self.term_handler.term_handles[0].go_down()
+            elif ch == ord('k'):
+                self.term_handler.term_handles[0].go_up()
+            elif ch == ord('l'):
+                self.term_handler.term_handles[0].go_right()
 
     def log(self, message):
         self.messages.append(message)
@@ -84,8 +101,10 @@ class MainManager:
 
 def start_app(window: curses.window, messages):
     window.keypad(False)
+    curses.init_pair(1, curses.COLOR_WHITE, 24)
+    curses.init_pair(2, curses.COLOR_WHITE, 19)
 
-    main_manager = MainManager(window, messages)
+    main_manager = Termulator(window, messages)
     main_manager.run()
 
 
