@@ -39,22 +39,18 @@ class TermHandle:
                 yield term
                 if cursor_equal:
                     yield PrintMetaInfo.CursorEnd
-            elif flag == PrintIteratorFlag.ENTER:
+            if flag == PrintIteratorFlag.ENTER:
                 if cursor_equals(self.cursor, cursor):
                     yield PrintMetaInfo.ChildStart
+            if flag == PrintIteratorFlag.ENTER or flag == PrintIteratorFlag.LEAVE:
                 parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
+                bracket_type = PrintMetaInfo.BracketStart if flag == PrintIteratorFlag.ENTER else PrintMetaInfo.BracketEnd
                 if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
                     if parent.get_operator_priority() > term.get_operator_priority():
-                        yield PrintMetaInfo.BracketStart
-                if isinstance(parent, PrefixOperator) and isinstance(term, InfixOperator):
-                    yield PrintMetaInfo.BracketStart
-            elif flag == PrintIteratorFlag.LEAVE:
-                parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
-                if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
-                    if parent.get_operator_priority() > term.get_operator_priority():
-                        yield PrintMetaInfo.BracketEnd
-                if isinstance(parent, PrefixOperator) and isinstance(term, InfixOperator):
-                    yield PrintMetaInfo.BracketEnd
+                        yield bracket_type
+                elif isinstance(parent, PrefixOperator) and isinstance(term, InfixOperator):
+                    yield bracket_type
+            if flag == PrintIteratorFlag.LEAVE:
                 if cursor_equals(self.cursor, cursor):
                     yield PrintMetaInfo.ChildEnd
 
