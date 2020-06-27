@@ -1,21 +1,6 @@
 from enum import Enum
 
-from termulator_py.terms.operators import Operator
-
-
-def term_iterator(term):
-    if isinstance(term, Operator):
-        # iterate over all sub terms except the last
-        for sub_term in term.get_sub_terms()[:-1]:
-            for sub_sub_term in term_iterator(sub_term):
-                yield sub_sub_term
-            yield term
-        # handle last term
-        if term.get_sub_terms():
-            for sub_sub_term in term_iterator(term.get_sub_terms()[-1]):
-                yield sub_sub_term
-    else:
-        yield term
+from termulator_py.terms.operators import InfixOperator, PrefixOperator
 
 
 class PrintIteratorFlag(Enum):
@@ -30,7 +15,7 @@ def print_iterator(term):
 
 def _print_iterator_impl(term, cursor):
     yield term, cursor, PrintIteratorFlag.ENTER
-    if isinstance(term, Operator):
+    if isinstance(term, InfixOperator):
         last_index = len(term.get_sub_terms()) - 1
         for index, sub_term in enumerate(term.get_sub_terms()):
             sub_cursor = [*cursor, index]
@@ -38,6 +23,10 @@ def _print_iterator_impl(term, cursor):
                 yield sub_sub_term, sub_sub_cursor, flag
             if index != last_index:
                 yield term, cursor, PrintIteratorFlag.TERM
+    elif isinstance(term, PrefixOperator):
+        yield term, cursor, PrintIteratorFlag.TERM
+        for sub_sub_term, sub_sub_cursor, flag in _print_iterator_impl(term.get_sub_term(), [*cursor, 0]):
+            yield sub_sub_term, sub_sub_cursor, flag
     else:
         yield term, cursor, PrintIteratorFlag.TERM
     yield term, cursor, PrintIteratorFlag.LEAVE
@@ -63,7 +52,7 @@ def cursor_equals(cursor0, cursor1):
 
 def get_term_by_cursor(term, cursor):
     for i in cursor:
-        if isinstance(term, Operator):
+        if isinstance(term, InfixOperator):
             sub_terms = term.get_sub_terms()
             if i < len(sub_terms):
                 term = sub_terms[i]

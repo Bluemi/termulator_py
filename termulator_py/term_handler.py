@@ -1,7 +1,7 @@
 from enum import Enum
 
-from termulator_py.terms.operators import Operator
-from termulator_py.util import term_iterator, print_iterator, cursor_equals, get_term_by_cursor, PrintIteratorFlag, \
+from termulator_py.terms.operators import InfixOperator, PrefixOperator
+from termulator_py.util import print_iterator, cursor_equals, get_term_by_cursor, PrintIteratorFlag, \
     cut_cursor_right
 
 
@@ -21,15 +21,6 @@ class TermHandler:
     def add_term(self, term):
         self.term_handles.append(TermHandle(term))
 
-    def get_string_representations(self):
-        return map(
-            lambda terms: ' '.join(map(str, terms)),
-            map(
-                TermHandle.get_term_iterator,
-                self.term_handles
-            )
-        )
-
 
 class TermHandle:
     def __init__(self, term):
@@ -38,9 +29,6 @@ class TermHandle:
 
     def get_top(self, cutoff=0):
         return get_term_by_cursor(self.term, cut_cursor_right(self.cursor, cutoff))
-
-    def get_term_iterator(self):
-        return term_iterator(self.term)
 
     def get_print_iterator(self):
         for term, cursor, flag in print_iterator(self.term):
@@ -55,12 +43,12 @@ class TermHandle:
                 if cursor_equals(self.cursor, cursor):
                     yield PrintMetaInfo.ChildStart
                 parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
-                if isinstance(parent, Operator) and isinstance(term, Operator):
+                if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
                     if parent.get_operator_priority() > term.get_operator_priority():
                         yield PrintMetaInfo.BracketStart
             elif flag == PrintIteratorFlag.LEAVE:
                 parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
-                if isinstance(parent, Operator) and isinstance(term, Operator):
+                if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
                     if parent.get_operator_priority() > term.get_operator_priority():
                         yield PrintMetaInfo.BracketEnd
                 if cursor_equals(self.cursor, cursor):
@@ -68,7 +56,10 @@ class TermHandle:
 
     def go_down(self):
         top = self.get_top()
-        if isinstance(top, Operator):
+        if isinstance(top, InfixOperator):
+            self.cursor.append(0)
+            return True
+        elif isinstance(top, PrefixOperator):
             self.cursor.append(0)
             return True
         return False
@@ -82,9 +73,10 @@ class TermHandle:
     def go_right(self):
         if self.cursor:
             parent = self.get_top(cutoff=1)
-            if self.cursor[-1] + 1 < len(parent.get_sub_terms()):
-                self.cursor[-1] += 1
-                return True
+            if isinstance(parent, InfixOperator):
+                if self.cursor[-1] + 1 < len(parent.get_sub_terms()):
+                    self.cursor[-1] += 1
+                    return True
         return False
 
     def go_left(self):

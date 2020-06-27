@@ -1,6 +1,6 @@
 from termulator_py.parsing.tokens import BracketToken, OperatorToken, VariableToken, NumberToken
 from termulator_py.terms import Term
-from termulator_py.terms.operators import Addition, Multiplication
+from termulator_py.terms.operators import Addition, Multiplication, Negative
 from termulator_py.terms.values import Number, Variable
 
 
@@ -48,6 +48,8 @@ def operator_to_expression(operator, left_expression, right_expression):
         return Addition([left_expression, right_expression])
     elif operator_str == '*':
         return Multiplication([left_expression, right_expression])
+    elif operator_str == '-':
+        return Addition([left_expression, Negative(right_expression)])
     else:
         raise NotImplementedError('')
 

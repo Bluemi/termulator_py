@@ -4,7 +4,7 @@ from termulator_py.terms import Term
 from termulator_py.terms.values import EmptyValue
 
 
-class Operator(Term):
+class InfixOperator(Term):
     @abstractmethod
     def get_operator_priority(self):
         pass
@@ -14,7 +14,13 @@ class Operator(Term):
         pass
 
 
-class Addition(Operator):
+class PrefixOperator(Term):
+    @abstractmethod
+    def get_sub_term(self):
+        pass
+
+
+class Addition(InfixOperator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()]*2
 
@@ -35,10 +41,9 @@ class Addition(Operator):
 
     def __str__(self):
         return '+'
-        # return join_with_brackets('+', self.sub_terms, self.get_operator_priority())
 
 
-class Multiplication(Operator):
+class Multiplication(InfixOperator):
     def __init__(self, terms=None):
         self.sub_terms = terms or [EmptyValue()] * 2
 
@@ -59,13 +64,17 @@ class Multiplication(Operator):
 
     def __str__(self):
         return '*'
-        # return join_with_brackets('*', self.sub_terms, self.get_operator_priority())
 
 
-def join_with_brackets(sep, terms, own_operator_priority):
-    def _bracket_if_necessary(term):
-        if isinstance(term, Operator):
-            if term.get_operator_priority() < own_operator_priority:
-                return '({})'.format(term)
-        return str(term)
-    return sep.join(map(_bracket_if_necessary, terms))
+class Negative(PrefixOperator):
+    def __init__(self, sub_term):
+        self.sub_term = sub_term
+
+    def get_sub_term(self):
+        return self.sub_term
+
+    def get_approx(self, variables):
+        return -self.sub_term.get_approx()
+
+    def __str__(self):
+        return '-'
