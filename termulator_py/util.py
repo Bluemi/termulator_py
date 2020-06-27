@@ -1,3 +1,5 @@
+from enum import Enum
+
 from termulator_py.terms.operators import Operator
 
 
@@ -16,21 +18,29 @@ def term_iterator(term):
         yield term
 
 
-def term_cursor_iterator(term):
-    return _term_cursor_iterator_impl(term, [])
+class PrintIteratorFlag(Enum):
+    ENTER = 0
+    LEAVE = 1
+    TERM = 2
 
 
-def _term_cursor_iterator_impl(term, cursor):
+def print_iterator(term):
+    return _print_iterator_impl(term, [])
+
+
+def _print_iterator_impl(term, cursor):
+    yield term, cursor, PrintIteratorFlag.ENTER
     if isinstance(term, Operator):
         last_index = len(term.get_sub_terms()) - 1
         for index, sub_term in enumerate(term.get_sub_terms()):
             sub_cursor = [*cursor, index]
-            for sub_sub_term, sub_sub_cursor in _term_cursor_iterator_impl(sub_term, sub_cursor):
-                yield sub_sub_term, sub_sub_cursor
+            for sub_sub_term, sub_sub_cursor, flag in _print_iterator_impl(sub_term, sub_cursor):
+                yield sub_sub_term, sub_sub_cursor, flag
             if index != last_index:
-                yield term, cursor
+                yield term, cursor, PrintIteratorFlag.TERM
     else:
-        yield term, cursor
+        yield term, cursor, PrintIteratorFlag.TERM
+    yield term, cursor, PrintIteratorFlag.LEAVE
 
 
 def cursor_contains_cursor(base, cursor):
@@ -58,5 +68,13 @@ def get_term_by_cursor(term, cursor):
             if i < len(sub_terms):
                 term = sub_terms[i]
             else:
-                raise ValueError('Cannot get {}. sub term of {}'.format(i, term))
+                return None
+        else:
+            return None
     return term
+
+
+def cut_cursor_right(cursor, cutoff):
+    if cutoff == 0:
+        return cursor
+    return cursor[:-cutoff]

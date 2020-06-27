@@ -3,7 +3,7 @@ import string
 from enum import Enum
 
 from termulator_py.parsing import parse_string
-from termulator_py.term_handler import TermHandler, CursorPosition
+from termulator_py.term_handler import TermHandler, PrintMetaInfo
 
 PRINTABLE_CH = [ord(key) for key in string.printable]
 
@@ -58,14 +58,18 @@ class Termulator:
             self.window.move(y, 0)
             color = 0
             for elem in term_handle.get_print_iterator():
-                if elem == CursorPosition.ChildStart:
+                if elem == PrintMetaInfo.ChildStart:
                     color = curses.color_pair(1)
-                elif elem == CursorPosition.ChildEnd:
+                elif elem == PrintMetaInfo.ChildEnd:
                     color = curses.color_pair(0)
-                elif elem == CursorPosition.CursorStart:
+                elif elem == PrintMetaInfo.CursorStart:
                     color = curses.color_pair(2)
-                elif elem == CursorPosition.CursorEnd:
+                elif elem == PrintMetaInfo.CursorEnd:
                     color = curses.color_pair(1)
+                elif elem == PrintMetaInfo.BracketStart:
+                    self.window.addstr('(', color)
+                elif elem == PrintMetaInfo.BracketEnd:
+                    self.window.addstr(')', color)
                 else:
                     self.window.addstr(str(elem), color)
 

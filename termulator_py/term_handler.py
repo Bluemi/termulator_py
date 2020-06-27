@@ -1,15 +1,17 @@
 from enum import Enum
 
 from termulator_py.terms.operators import Operator
-from termulator_py.util import term_iterator, term_cursor_iterator, cursor_contains_cursor, cursor_equals, \
-    get_term_by_cursor
+from termulator_py.util import term_iterator, print_iterator, cursor_contains_cursor, cursor_equals, \
+    get_term_by_cursor, PrintIteratorFlag, cut_cursor_right
 
 
-class CursorPosition(Enum):
+class PrintMetaInfo(Enum):
     ChildStart = 0
     ChildEnd = 1
     CursorStart = 2
     CursorEnd = 3
+    BracketStart = 4
+    BracketEnd = 5
 
 
 class TermHandler:
@@ -35,36 +37,34 @@ class TermHandle:
         self.cursor = []
 
     def get_top(self, cutoff=0):
-        if cutoff == 0:
-            indices = self.cursor
-        else:
-            indices = self.cursor[:-cutoff]
-
-        return get_term_by_cursor(self.term, indices)
+        return get_term_by_cursor(self.term, cut_cursor_right(self.cursor, cutoff))
 
     def get_term_iterator(self):
         return term_iterator(self.term)
 
     def get_print_iterator(self):
-        contains = False
-        for term, cursor in term_cursor_iterator(self.term):
-            if contains:
-                if not cursor_contains_cursor(self.cursor, cursor):
-                    contains = False
-                    yield CursorPosition.ChildEnd
-            else:
-                if cursor_contains_cursor(self.cursor, cursor):
-                    contains = True
-                    yield CursorPosition.ChildStart
-
-            cursor_equal = cursor_equals(self.cursor, cursor)
-            if cursor_equal:
-                yield CursorPosition.CursorStart
-            yield term
-            if cursor_equal:
-                yield CursorPosition.CursorEnd
-        if contains:
-            yield CursorPosition.ChildEnd
+        for term, cursor, flag in print_iterator(self.term):
+            if flag == PrintIteratorFlag.TERM:
+                cursor_equal = cursor_equals(self.cursor, cursor)
+                if cursor_equal:
+                    yield PrintMetaInfo.CursorStart
+                yield term
+                if cursor_equal:
+                    yield PrintMetaInfo.CursorEnd
+            elif flag == PrintIteratorFlag.ENTER:
+                if cursor_equals(self.cursor, cursor):
+                    yield PrintMetaInfo.ChildStart
+                parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
+                if isinstance(parent, Operator) and isinstance(term, Operator):
+                    if parent.get_operator_priority() > term.get_operator_priority():
+                        yield PrintMetaInfo.BracketStart
+            elif flag == PrintIteratorFlag.LEAVE:
+                parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
+                if isinstance(parent, Operator) and isinstance(term, Operator):
+                    if parent.get_operator_priority() > term.get_operator_priority():
+                        yield PrintMetaInfo.BracketEnd
+                if cursor_equals(self.cursor, cursor):
+                    yield PrintMetaInfo.ChildEnd
 
     def go_down(self):
         top = self.get_top()
