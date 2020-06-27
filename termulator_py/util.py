@@ -1,6 +1,6 @@
 from enum import Enum
 
-from termulator_py.terms.operators import InfixOperator, PrefixOperator
+from termulator_py.terms.operators import InfixOperator, PrefixOperator, Operator
 
 
 class PrintIteratorFlag(Enum):
@@ -25,7 +25,7 @@ def _print_iterator_impl(term, cursor):
                 yield term, cursor, PrintIteratorFlag.TERM
     elif isinstance(term, PrefixOperator):
         yield term, cursor, PrintIteratorFlag.TERM
-        for sub_sub_term, sub_sub_cursor, flag in _print_iterator_impl(term.get_sub_term(), [*cursor, 0]):
+        for sub_sub_term, sub_sub_cursor, flag in _print_iterator_impl(term.get_sub_terms()[0], [*cursor, 0]):
             yield sub_sub_term, sub_sub_cursor, flag
     else:
         yield term, cursor, PrintIteratorFlag.TERM
@@ -52,7 +52,7 @@ def cursor_equals(cursor0, cursor1):
 
 def get_term_by_cursor(term, cursor):
     for i in cursor:
-        if isinstance(term, InfixOperator):
+        if isinstance(term, Operator):
             sub_terms = term.get_sub_terms()
             if i < len(sub_terms):
                 term = sub_terms[i]

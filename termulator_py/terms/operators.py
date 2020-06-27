@@ -1,23 +1,23 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 
 from termulator_py.terms import Term
 from termulator_py.terms.values import EmptyValue
 
 
-class InfixOperator(Term):
-    @abstractmethod
-    def get_operator_priority(self):
-        pass
-
+class Operator(Term):
     @abstractmethod
     def get_sub_terms(self):
         pass
 
 
-class PrefixOperator(Term):
+class InfixOperator(Operator):
     @abstractmethod
-    def get_sub_term(self):
+    def get_operator_priority(self):
         pass
+
+
+class PrefixOperator(Operator, ABC):
+    pass
 
 
 class Addition(InfixOperator):
@@ -70,8 +70,8 @@ class Negative(PrefixOperator):
     def __init__(self, sub_term):
         self.sub_term = sub_term
 
-    def get_sub_term(self):
-        return self.sub_term
+    def get_sub_terms(self):
+        return [self.sub_term]
 
     def get_approx(self, variables):
         return -self.sub_term.get_approx()

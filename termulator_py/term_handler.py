@@ -1,6 +1,6 @@
 from enum import Enum
 
-from termulator_py.terms.operators import InfixOperator, PrefixOperator
+from termulator_py.terms.operators import InfixOperator, PrefixOperator, Operator
 from termulator_py.util import print_iterator, cursor_equals, get_term_by_cursor, PrintIteratorFlag, \
     cut_cursor_right
 
@@ -46,20 +46,21 @@ class TermHandle:
                 if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
                     if parent.get_operator_priority() > term.get_operator_priority():
                         yield PrintMetaInfo.BracketStart
+                if isinstance(parent, PrefixOperator) and isinstance(term, InfixOperator):
+                    yield PrintMetaInfo.BracketStart
             elif flag == PrintIteratorFlag.LEAVE:
                 parent = get_term_by_cursor(self.term, cut_cursor_right(cursor, 1))
                 if isinstance(parent, InfixOperator) and isinstance(term, InfixOperator):
                     if parent.get_operator_priority() > term.get_operator_priority():
                         yield PrintMetaInfo.BracketEnd
+                if isinstance(parent, PrefixOperator) and isinstance(term, InfixOperator):
+                    yield PrintMetaInfo.BracketEnd
                 if cursor_equals(self.cursor, cursor):
                     yield PrintMetaInfo.ChildEnd
 
     def go_down(self):
         top = self.get_top()
-        if isinstance(top, InfixOperator):
-            self.cursor.append(0)
-            return True
-        elif isinstance(top, PrefixOperator):
+        if isinstance(top, Operator):
             self.cursor.append(0)
             return True
         return False
