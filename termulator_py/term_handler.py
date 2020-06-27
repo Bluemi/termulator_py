@@ -1,8 +1,8 @@
 from enum import Enum
 
 from termulator_py.terms.operators import Operator
-from termulator_py.util import term_iterator, print_iterator, cursor_contains_cursor, cursor_equals, \
-    get_term_by_cursor, PrintIteratorFlag, cut_cursor_right
+from termulator_py.util import term_iterator, print_iterator, cursor_equals, get_term_by_cursor, PrintIteratorFlag, \
+    cut_cursor_right
 
 
 class PrintMetaInfo(Enum):
