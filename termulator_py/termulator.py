@@ -33,7 +33,7 @@ class Termulator:
         self.window = window
         self.term_handler = TermHandler()
         self.display_mode = DisplayMode.TERMS
-        self.term_handler.add_term(parse_string('1 - (x - 2*x)'))
+        self.term_handler.add_term(parse_string('1 - 1'))
         self.console = Console()
         self.running = True
         self.messages = messages
@@ -57,21 +57,21 @@ class Termulator:
         for y, term_handle in enumerate(self.term_handler.term_handles):
             self.window.move(y, 0)
             color = 0
-            for elem in term_handle.get_print_iterator():
-                if elem == PrintMetaInfo.ChildStart:
-                    color = curses.color_pair(1)
-                elif elem == PrintMetaInfo.ChildEnd:
-                    color = curses.color_pair(0)
-                elif elem == PrintMetaInfo.CursorStart:
-                    color = curses.color_pair(2)
-                elif elem == PrintMetaInfo.CursorEnd:
-                    color = curses.color_pair(1)
-                elif elem == PrintMetaInfo.BracketStart:
-                    self.window.addstr('(', color)
-                elif elem == PrintMetaInfo.BracketEnd:
-                    self.window.addstr(')', color)
+            for printable in term_handle.get_print_iterator():
+                if printable == PrintMetaInfo.ChildStart:
+                    color = 1
+                elif printable == PrintMetaInfo.ChildEnd:
+                    color = 0
+                elif printable == PrintMetaInfo.CursorStart:
+                    color = 2
+                elif printable == PrintMetaInfo.CursorEnd:
+                    color = 1
+                elif printable == PrintMetaInfo.BracketStart:
+                    self.window.addstr('(', curses.color_pair(color))
+                elif printable == PrintMetaInfo.BracketEnd:
+                    self.window.addstr(')', curses.color_pair(color))
                 else:
-                    self.window.addstr(str(elem), color)
+                    self.window.addstr(str(printable), curses.color_pair(color))
 
     def handle_ch(self, ch):
         if self.display_mode == DisplayMode.CONSOLE:
