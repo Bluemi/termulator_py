@@ -33,7 +33,7 @@ class Termulator:
         self.window = window
         self.term_handler = TermHandler()
         self.display_mode = DisplayMode.TERMS
-        self.term_handler.add_term(parse_string('1 - 1'))
+        self.term_handler.add_term(parse_string('2*3 + 4 * ((1) - 1)'))
         self.console = Console()
         self.running = True
         self.messages = messages
